@@ -58,7 +58,7 @@ restartBtn.addEventListener('click', () => {
   restartBtn.style.display = 'none';
 });
 
-window.addEventListener('keypress', (e) => {
+window.addEventListener('keydown', (e) => {
   if (!ws) return;
   const map = {
     ArrowUp: 'up', w: 'up',
