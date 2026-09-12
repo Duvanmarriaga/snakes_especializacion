@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Snake Multijugador (antes)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Snake</h1>
+
+  <div id="join-panel">
+    <input id="name-input" placeholder="Tu nombre" maxlength="12" />
+    <input id="room-input" placeholder="Codigo de sala" maxlength="12" value="sala1" />
+    <button id="join-btn">Unirse</button>
+    <button id="espectar">Espectar</button>
+  </div>
+
+  <div id="status"></div>
+
+  <canvas id="board" width="600" height="600"></canvas>
+
+  <div id="scoreboard"></div>
+
+  <button id="restart-btn" style="display:none">Reiniciar partida</button>
+
+  <script src="client.js"></script>
+</body>
+</html>

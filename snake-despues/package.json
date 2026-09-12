@@ -1,0 +1,14 @@
+{
+  "name": "snake-despues",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Snake multijugador - version refactorizada con arquitectura en capas y patrones GoF",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

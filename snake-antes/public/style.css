@@ -1,0 +1,41 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #111;
+  color: #eee;
+  text-align: center;
+  padding: 20px;
+}
+
+#join-panel {
+  margin-bottom: 12px;
+}
+
+input, button {
+  font-size: 14px;
+  padding: 6px 10px;
+  margin: 0 4px;
+}
+
+#status {
+  min-height: 24px;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+canvas {
+  background: #000;
+  border: 2px solid #444;
+}
+
+#scoreboard {
+  margin-top: 12px;
+  font-size: 15px;
+}
+
+#scoreboard div {
+  display: inline-block;
+  margin: 0 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #222;
+}

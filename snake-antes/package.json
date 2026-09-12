@@ -1,0 +1,13 @@
+{
+  "name": "snake-antes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Snake multijugador - version sin arquitectura (antes del refactor)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
