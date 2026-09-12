@@ -11,7 +11,7 @@ class GrowPowerUp extends PowerUp {
     for (let i = 0; i < this.extraSegments; i++) {
       snake.body.push({ x: tail.x, y: tail.y });
     }
-    return true; // crece, no debe recortar la cola en este tick
+    return true;
   }
 }
 

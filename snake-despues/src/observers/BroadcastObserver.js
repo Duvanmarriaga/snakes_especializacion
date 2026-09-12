@@ -1,5 +1,3 @@
-// Observer concreto: traduce eventos del dominio (GameRoom) en mensajes WebSocket.
-// GameRoom no sabe que existe WebSocket; solo notifica eventos.
 class BroadcastObserver {
   constructor(room) {
     this.room = room;

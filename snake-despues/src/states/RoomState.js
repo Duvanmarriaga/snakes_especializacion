@@ -5,6 +5,8 @@ class RoomState {
 
   onPlayerJoined() {}
 
+  onStartRequested() {}
+
   onRestartRequested() {}
 
   tick() {}

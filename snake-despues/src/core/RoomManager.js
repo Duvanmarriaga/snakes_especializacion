@@ -3,8 +3,6 @@ const BroadcastObserver = require('../observers/BroadcastObserver');
 
 let instance = null;
 
-// Singleton: un unico punto de acceso al registro de salas del servidor.
-// Sustituye la variable global `let rooms = {}` de snake-antes/server.js.
 class RoomManager {
   constructor() {
     if (instance) {

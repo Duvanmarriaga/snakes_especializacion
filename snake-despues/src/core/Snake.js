@@ -45,8 +45,6 @@ class Snake {
     if (!grow) this.body.pop();
   }
 
-  // Unico lugar del proyecto donde se compara "misma celda que un segmento":
-  // reemplaza los 4 bucles casi identicos que existian en snake-antes/server.js.
   occupies(point) {
     return this.body.some((segment) => segment.x === point.x && segment.y === point.y);
   }

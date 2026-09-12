@@ -24,7 +24,7 @@ function handleConnection(ws) {
   });
 }
 
-const HANDLERS = { join: handleJoin, move: handleMove, restart: handleRestart };
+const HANDLERS = { join: handleJoin, move: handleMove, start: handleStart, restart: handleRestart };
 
 function dispatch(ws, message) {
   const handler = HANDLERS[message.type];
@@ -55,6 +55,13 @@ function handleMove(ws, message) {
   const room = RoomManager.getInstance().getRoom(ws.roomCode);
   if (!room) return;
   room.handleDirection(ws.playerId, message.dir);
+}
+
+function handleStart(ws) {
+  if (!ws.roomCode) return;
+  const room = RoomManager.getInstance().getRoom(ws.roomCode);
+  if (!room) return;
+  room.requestStart();
 }
 
 function handleRestart(ws) {

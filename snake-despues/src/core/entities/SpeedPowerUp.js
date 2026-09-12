@@ -6,7 +6,7 @@ class SpeedPowerUp extends PowerUp {
   }
 
   applyTo() {
-    return false; // no crece, solo suma puntaje
+    return false;
   }
 }
 

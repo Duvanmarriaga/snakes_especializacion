@@ -8,10 +8,13 @@ class PlayingState extends RoomState {
 
   tick() {
     const aliveCount = this.room.runRound();
-    if (this.room.players.length >= 2 && aliveCount <= 1) {
+    const soloDefeated = this.room.players.length === 1 && aliveCount === 0;
+    const lastOneStanding = this.room.players.length >= 2 && aliveCount <= 1;
+    if (soloDefeated || lastOneStanding) {
       this.room.stopGameLoop();
       const GameOverState = require('./GameOverState');
       this.room.setState(new GameOverState(this.room));
+      this.room.notify('state', this.room.getSnapshot());
     }
   }
 

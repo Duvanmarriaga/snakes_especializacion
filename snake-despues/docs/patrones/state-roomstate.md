@@ -2,7 +2,7 @@
 
 ## Problema que resuelve
 
-En `snake-antes/server.js`, la fase de la partida se controla con un campo de texto (`room.state = 'waiting' | 'countdown' | 'playing' | 'gameover'`) revisado con comparaciones sueltas, y la transición de una fase a otra está **duplicada literalmente** entre `join` (líneas 86-99) y `restart` (líneas 141-154): el mismo bloque de cuenta regresiva copiado y pegado. Nada impide, por ejemplo, llamar `startGameLoop` dos veces sobre la misma sala si dos eventos coinciden.
+En `snake-antes/server.js`, la fase de la partida se controla con un campo de texto (`room.state = 'waiting' | 'countdown' | 'playing' | 'gameover'`) revisado con comparaciones sueltas, y la transición de una fase a otra está **duplicada literalmente** entre `join` (líneas 80-94), `start` (líneas 98-118, el mensaje agregado para permitir jugar de a una persona) y `restart` (líneas 158-196): el mismo bloque de cuenta regresiva copiado y pegado tres veces. Nada impide, por ejemplo, llamar `startGameLoop` dos veces sobre la misma sala si dos eventos coinciden.
 
 ## Estructura aplicada
 
@@ -10,8 +10,9 @@ En `snake-antes/server.js`, la fase de la partida se controla con un campo de te
 stateDiagram-v2
     [*] --> WaitingState
     WaitingState --> CountdownState : onPlayerJoined() con >= MIN_PLAYERS_TO_START
+    WaitingState --> CountdownState : onStartRequested() con >= 1 jugador (modo un jugador)
     CountdownState --> PlayingState : cuenta regresiva llega a 0
-    PlayingState --> GameOverState : queda <= 1 serpiente viva
+    PlayingState --> GameOverState : 1 jugador y 0 vivas, o 2+ jugadores y <= 1 viva
     GameOverState --> WaitingState : onRestartRequested()
 ```
 
@@ -21,6 +22,7 @@ classDiagram
         <<abstract>>
         #room: GameRoom
         +onPlayerJoined()
+        +onStartRequested()
         +onRestartRequested()
         +tick()
         +getName() string
@@ -44,7 +46,7 @@ classDiagram
     GameRoom o-- RoomState : delega en
 ```
 
-`GameRoom` (el *contexto*) nunca pregunta "¿en qué fase estoy?" con un `if`: delega `onPlayerJoined()`, `onRestartRequested()` y `tick()` al objeto `state` actual, y cada estado concreto decide a qué otro estado transicionar llamando `room.setState(new SiguienteState(room))`.
+`GameRoom` (el *contexto*) nunca pregunta "¿en qué fase estoy?" con un `if`: delega `onPlayerJoined()`, `onStartRequested()`, `onRestartRequested()` y `tick()` al objeto `state` actual, y cada estado concreto decide a qué otro estado transicionar llamando `room.setState(new SiguienteState(room))`. `onStartRequested()` es lo que habilita el modo un jugador: `WaitingState` la ignora si no hay al menos un jugador, pero no exige el mínimo de `MIN_PLAYERS_TO_START` que sí exige el arranque automático por `onPlayerJoined()`.
 
 ## Por qué State y no otra alternativa
 

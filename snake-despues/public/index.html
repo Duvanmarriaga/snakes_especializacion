@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Snake Multijugador (despues)</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -16,7 +17,18 @@
 
   <div id="status"></div>
 
-  <canvas id="board" width="600" height="600"></canvas>
+  <button id="start-btn" style="display:none">Empezar (1 jugador o mas)</button>
+
+  <div id="board-wrap">
+    <canvas id="board" width="600" height="600"></canvas>
+  </div>
+
+  <div id="touch-controls" aria-label="Controles tactiles">
+    <button id="btn-up" class="tc-btn tc-up" aria-label="Arriba">&#8593;</button>
+    <button id="btn-left" class="tc-btn tc-left" aria-label="Izquierda">&#8592;</button>
+    <button id="btn-right" class="tc-btn tc-right" aria-label="Derecha">&#8594;</button>
+    <button id="btn-down" class="tc-btn tc-down" aria-label="Abajo">&#8595;</button>
+  </div>
 
   <div id="scoreboard"></div>
 

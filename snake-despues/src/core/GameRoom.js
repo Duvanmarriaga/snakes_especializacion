@@ -3,10 +3,9 @@ const ClassicCollisionStrategy = require('../strategies/ClassicCollisionStrategy
 const FoodFactory = require('../factories/FoodFactory');
 const SpeedPowerUpFactory = require('../factories/SpeedPowerUpFactory');
 const GrowPowerUpFactory = require('../factories/GrowPowerUpFactory');
-const { BOARD_SIZE, TICK_MS, MAX_PLAYERS, POWERUP_SPAWN_CHANCE } = require('../config');
+const ObstacleFactory = require('../factories/ObstacleFactory');
+const { BOARD_SIZE, TICK_MS, MAX_PLAYERS, POWERUP_SPAWN_CHANCE, OBSTACLE_COUNT } = require('../config');
 
-// GameRoom es el "contexto" del State y el "subject" del Observer. No sabe nada
-// de WebSocket: solo notifica eventos de dominio (ver notify/observers).
 class GameRoom {
   constructor(code, collisionStrategy = new ClassicCollisionStrategy()) {
     this.code = code;
@@ -15,6 +14,8 @@ class GameRoom {
     this.collisionStrategy = collisionStrategy;
     this.foodFactory = new FoodFactory();
     this.powerUpFactories = [new SpeedPowerUpFactory(), new GrowPowerUpFactory()];
+    this.obstacleFactory = new ObstacleFactory();
+    this.obstacles = this.spawnObstacles();
     this.food = this.foodFactory.createEntity(this.randomFreePosition());
     this.powerUp = null;
     this.interval = null;
@@ -58,6 +59,10 @@ class GameRoom {
     if (player) player.snake.setDirection(dir);
   }
 
+  requestStart() {
+    this.state.onStartRequested();
+  }
+
   requestRestart() {
     this.state.onRestartRequested();
   }
@@ -66,8 +71,28 @@ class GameRoom {
     this.players.forEach((player, index) => {
       player.snake.reset({ x: 3 + index * 5, y: 3 + index * 5 });
     });
+    this.obstacles = this.spawnObstacles();
     this.food = this.foodFactory.createEntity(this.randomFreePosition());
     this.powerUp = null;
+  }
+
+  reservedStartCells() {
+    const cells = [];
+    for (let i = 0; i < MAX_PLAYERS; i++) {
+      const x = 3 + i * 5;
+      const y = 3 + i * 5;
+      cells.push({ x, y }, { x: x - 1, y }, { x: x - 2, y });
+    }
+    return cells;
+  }
+
+  spawnObstacles() {
+    this.obstacles = [];
+    const reserved = this.reservedStartCells();
+    for (let i = 0; i < OBSTACLE_COUNT; i++) {
+      this.obstacles.push(this.obstacleFactory.createEntity(this.randomFreePosition(reserved)));
+    }
+    return this.obstacles;
   }
 
   startGameLoop() {
@@ -81,16 +106,16 @@ class GameRoom {
     }
   }
 
-  randomFreePosition() {
+  randomFreePosition(extraBlocked = []) {
     let position;
     do {
       position = { x: Math.floor(Math.random() * BOARD_SIZE), y: Math.floor(Math.random() * BOARD_SIZE) };
-    } while (this.isOccupied(position));
+    } while (this.isOccupied(position) || extraBlocked.some((c) => c.x === position.x && c.y === position.y));
     return position;
   }
 
   isOccupied(point) {
-    return this.players.some((p) => p.snake.occupies(point));
+    return this.players.some((p) => p.snake.occupies(point)) || this.collidesWithObstacle(point);
   }
 
   runRound() {
@@ -99,7 +124,12 @@ class GameRoom {
       const nextHead = player.snake.peekNextHead();
       const resolvedHead = this.collisionStrategy.resolveWallCollision(nextHead, BOARD_SIZE);
 
-      if (!resolvedHead || player.snake.occupies(resolvedHead) || this.collidesWithOtherSnake(player, resolvedHead)) {
+      if (
+        !resolvedHead ||
+        player.snake.occupies(resolvedHead) ||
+        this.collidesWithOtherSnake(player, resolvedHead) ||
+        this.collidesWithObstacle(resolvedHead)
+      ) {
         player.snake.kill();
         continue;
       }
@@ -115,6 +145,10 @@ class GameRoom {
 
   collidesWithOtherSnake(player, point) {
     return this.players.some((other) => other.id !== player.id && other.snake.alive && other.snake.occupies(point));
+  }
+
+  collidesWithObstacle(point) {
+    return this.obstacles.some((o) => o.x === point.x && o.y === point.y);
   }
 
   tryConsume(player, point) {
@@ -144,6 +178,7 @@ class GameRoom {
       state: this.state.getName(),
       food: { x: this.food.x, y: this.food.y },
       powerup: this.powerUp ? { x: this.powerUp.x, y: this.powerUp.y, kind: this.powerUp.kind } : null,
+      obstacles: this.obstacles.map((o) => ({ x: o.x, y: o.y })),
       players: this.players.map((p) => ({
         id: p.id,
         name: p.name,

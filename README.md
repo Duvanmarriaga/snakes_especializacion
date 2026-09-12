@@ -36,9 +36,10 @@ npm test           # node:test — un caso por patrón, aislado y sin WebSocket 
 ## Cómo jugar (ambas versiones)
 
 1. Levanta el servidor correspondiente (`npm start`).
-2. Abre `http://localhost:<puerto>` en dos o más pestañas/navegadores.
+2. Abre `http://localhost:<puerto>` en una o más pestañas/navegadores.
 3. En cada pestaña, escribe un nombre y el mismo código de sala, y pulsa "Unirse".
-4. Con 2+ jugadores en la sala arranca la cuenta regresiva y luego la partida. Controles: flechas o WASD.
-5. Al terminar la partida (queda una sola serpiente viva), cualquier jugador puede pulsar "Reiniciar partida".
+4. Con 2+ jugadores en la sala arranca la cuenta regresiva automáticamente. Para jugar solo (1 jugador), pulsa el botón "Empezar" que aparece tras unirte. Controles: flechas, WASD, los botones táctiles en pantalla o un swipe sobre el tablero.
+5. El tablero tiene obstáculos fijos (bloques grises) además de la comida y los power-ups: chocar contra uno elimina a la serpiente igual que chocar contra un borde o contra otra serpiente. Se reubican en cada partida nueva.
+6. Al terminar la partida (el jugador solitario muere, o en multijugador queda una sola serpiente viva), cualquier jugador puede pulsar "Reiniciar partida".
 
 El despliegue en AWS (VPC + dominio propio) queda fuera del alcance de este repositorio; ambos proyectos corren de forma idéntica en local mediante `npm start`.
