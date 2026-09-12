@@ -1,8 +1,9 @@
-const Collectible = require('./Collectible');
-
-class Food extends Collectible {
+class Food {
   constructor(x, y) {
-    super(x, y, 'food', 10);
+    this.x = x;
+    this.y = y;
+    this.kind = 'food';
+    this.value = 10;
   }
 }
 

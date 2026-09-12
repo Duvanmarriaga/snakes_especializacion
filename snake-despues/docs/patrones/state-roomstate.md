@@ -2,7 +2,7 @@
 
 ## Problema que resuelve
 
-En `snake-antes/server.js`, la fase de la partida se controla con un campo de texto (`room.state = 'waiting' | 'countdown' | 'playing' | 'gameover'`) revisado con comparaciones sueltas, y la transición de una fase a otra está **duplicada literalmente** entre `join` (líneas 80-94), `start` (líneas 98-118, el mensaje agregado para permitir jugar de a una persona) y `restart` (líneas 158-196): el mismo bloque de cuenta regresiva copiado y pegado tres veces. Nada impide, por ejemplo, llamar `startGameLoop` dos veces sobre la misma sala si dos eventos coinciden.
+En `snake-antes/server.js`, la fase de la partida se controla con un campo de texto (`room.state = 'waiting' | 'countdown' | 'playing' | 'gameover'`) revisado con comparaciones sueltas, y la transición de una fase a otra está **duplicada literalmente** entre `join` (líneas 77-91), `start` (líneas 99-113, el mensaje agregado para permitir jugar de a una persona) y `restart` (líneas 153-167): el mismo bloque de cuenta regresiva copiado y pegado tres veces. Nada impide, por ejemplo, llamar `startGameLoop` dos veces sobre la misma sala si dos eventos coinciden.
 
 ## Estructura aplicada
 

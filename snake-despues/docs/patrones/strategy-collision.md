@@ -2,7 +2,7 @@
 
 ## Problema que resuelve
 
-En `snake-antes/server.js:196`, la regla de "qué pasa al tocar el borde del tablero" está escrita en línea, mezclada con el resto del game loop:
+En `snake-antes/server.js:207`, la regla de "qué pasa al tocar el borde del tablero" está escrita en línea, mezclada con el resto del game loop:
 ```js
 if (newHead.x < 0 || newHead.x >= 30 || newHead.y < 0 || newHead.y >= 30) {
   p.alive = false;

@@ -1,10 +1,10 @@
-# Factory Method — `EntityFactory` / `FoodFactory` / `SpeedPowerUpFactory` / `GrowPowerUpFactory` / `ObstacleFactory`
+# Factory Method — `EntityFactory` / `FoodFactory`
 
 ## Problema que resuelve
 
-En `snake-antes/server.js`, la comida, los power-ups y ahora los obstáculos se crean como objetos literales repetidos e inconsistentes: `{ x: fx, y: fy }` para la comida (líneas 305-317), `{ x: px, y: py, kind: ... }` para el power-up (líneas 333-347) y `{ x: ox, y: oy }` para cada obstáculo (líneas 216-236, función `generateObstacles`), cada uno con su propio bucle de "buscar posición libre" copiado y pegado. Agregar los obstáculos para el nuevo modo de juego fue, literalmente, escribir una cuarta variante del mismo bucle en vez de reutilizar nada. Además hay que tocar el `if/else` que decide qué efecto aplicar el power-up (`server.js:319-326`).
+En `snake-antes/server.js`, la comida se crea como un objeto literal repetido e inconsistente: `{ x: fx, y: fy }` (líneas 242-253), con su propio bucle de "buscar posición libre" escrito en línea dentro del game loop. Si se quisiera agregar un nuevo tipo de entidad coleccionable, la única forma de hacerlo sería copiar ese mismo bucle otra vez con otro nombre de variable.
 
-En `snake-despues`, en cambio, agregar obstáculos fue: una clase `Obstacle`, una `ObstacleFactory`, y una llamada a `this.randomFreePosition(...)` ya existente — cero bucles nuevos de "buscar posición libre".
+En `snake-despues`, en cambio, crear la comida es: `this.foodFactory.createEntity(this.randomFreePosition())` — la búsqueda de posición libre vive en un solo lugar (`GameRoom.randomFreePosition`) y la construcción del objeto vive en `FoodFactory`.
 
 ## Estructura aplicada
 
@@ -12,52 +12,23 @@ En `snake-despues`, en cambio, agregar obstáculos fue: una clase `Obstacle`, un
 classDiagram
     class EntityFactory {
         <<abstract>>
-        +createEntity(position) Collectible
+        +createEntity(position) Food
     }
     class FoodFactory {
         +createEntity(position) Food
     }
-    class SpeedPowerUpFactory {
-        +createEntity(position) SpeedPowerUp
-    }
-    class GrowPowerUpFactory {
-        +createEntity(position) GrowPowerUp
-    }
-    class ObstacleFactory {
-        +createEntity(position) Obstacle
-    }
-    class Collectible {
+    class Food {
         +x, y, kind, value
-    }
-    class Food
-    class PowerUp {
-        <<abstract>>
-        +applyTo(snake) boolean
-    }
-    class SpeedPowerUp
-    class GrowPowerUp
-    class Obstacle {
-        +x, y, kind
     }
 
     EntityFactory <|-- FoodFactory
-    EntityFactory <|-- SpeedPowerUpFactory
-    EntityFactory <|-- GrowPowerUpFactory
-    EntityFactory <|-- ObstacleFactory
-    Collectible <|-- Food
-    Collectible <|-- PowerUp
-    PowerUp <|-- SpeedPowerUp
-    PowerUp <|-- GrowPowerUp
     FoodFactory ..> Food : crea
-    SpeedPowerUpFactory ..> SpeedPowerUp : crea
-    GrowPowerUpFactory ..> GrowPowerUp : crea
-    ObstacleFactory ..> Obstacle : crea
 ```
 
-`EntityFactory` es el *Creator* abstracto (`createEntity(position)`); cada factory concreta decide qué *Product* concreto instanciar. `GameRoom` (`src/core/GameRoom.js`) nunca pregunta "¿qué tipo de power-up es este?" con un `if/else`: cada `PowerUp` implementa su propio `applyTo(snake)`, así que aplicar el efecto es simplemente `this.powerUp.applyTo(player.snake)`.
+`EntityFactory` es el *Creator* abstracto (`createEntity(position)`); `FoodFactory` es el *Creator* concreto que decide qué *Product* concreto instanciar (`Food`). `GameRoom` (`src/core/GameRoom.js`) nunca construye el objeto `Food` a mano ni conoce sus campos internos: solo le pide a la factory que cree la entidad en una posición dada.
 
 ## Por qué Factory Method y no otra alternativa
 
-- **Alternativa descartada — una función `createEntity(kind, position)` con un `switch` interno:** es justo lo que penaliza la rúbrica ("un Factory Method que sigue usando `if/elif` internamente"); mover el `switch` a una función no elimina el problema de fondo, solo lo reubica.
-- **Alternativa descartada — Abstract Factory:** tendría sentido si existieran *familias* de entidades relacionadas (p. ej. un modo de juego "clásico" vs. uno "caótico" con familias completas de power-ups distintos). Aquí solo hay productos individuales sin familias, así que Abstract Factory sería una capa de más sin beneficio.
-- **Por qué Factory Method:** el problema real es "crear el producto correcto sin que el llamador conozca la clase concreta ni el efecto que produce", que es exactamente lo que resuelve delegar la creación a subclases (`FoodFactory`, `SpeedPowerUpFactory`, `GrowPowerUpFactory`, `ObstacleFactory`) y el comportamiento a los propios productos (`applyTo` en los power-ups). Agregar un power-up nuevo, o —como pasó al implementar los obstáculos— una entidad completamente distinta con otra semántica (un obstáculo no se consume, solo bloquea), es agregar una clase y una factory, sin tocar `GameRoom` más que en el punto donde se invoca `createEntity`.
+- **Alternativa descartada — construir `{ x, y, kind: 'food', value: 10 }` directamente en `GameRoom`:** es justo lo que hacía el "antes"; funciona mientras exista un solo tipo de entidad, pero acopla `GameRoom` a la forma exacta del objeto y obliga a tocar `GameRoom` cada vez que la entidad cambie o se agregue una nueva.
+- **Alternativa descartada — Abstract Factory:** tendría sentido si existieran *familias* de entidades relacionadas (por ejemplo, un modo de juego "clásico" vs. uno con un catálogo completo de entidades distintas). Aquí solo hay un producto individual, así que Abstract Factory sería una capa de más sin beneficio.
+- **Por qué Factory Method:** el problema real es "crear el producto correcto sin que el llamador construya el objeto a mano ni conozca sus detalles internos", que es exactamente lo que resuelve delegar la creación a una subclase de `EntityFactory`. Si mañana se agrega un segundo tipo de entidad, la extensión es una clase de producto y una factory nuevas — `GameRoom` solo cambia en el punto donde invoca `createEntity`, tal como ya lo demuestra el `EntityFactory` abstracto reutilizable para cualquier entidad futura.

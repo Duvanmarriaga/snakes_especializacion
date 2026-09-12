@@ -2,7 +2,7 @@
 
 ## Problema que resuelve
 
-En `snake-antes/server.js:177-298`, el game loop entero (mover serpientes, calcular las tres colisiones, generar comida y power-ups, decidir el fin de partida) termina con un `for` que llama `room.players[i].ws.send(...)` directamente (línea 296). La lógica del juego y el transporte por WebSocket están en la misma función: es imposible probar las reglas del juego sin un socket real, y es imposible cambiar cómo se notifica el estado (por ejemplo, para loggear cada tick) sin tocar el game loop.
+En `snake-antes/server.js:189-280`, el game loop entero (mover serpientes, calcular las tres colisiones, generar comida, decidir el fin de partida) termina con un `for` que llama `room.players[i].ws.send(...)` directamente (línea 277). La lógica del juego y el transporte por WebSocket están en la misma función: es imposible probar las reglas del juego sin un socket real, y es imposible cambiar cómo se notifica el estado (por ejemplo, para loggear cada tick) sin tocar el game loop.
 
 ## Estructura aplicada
 

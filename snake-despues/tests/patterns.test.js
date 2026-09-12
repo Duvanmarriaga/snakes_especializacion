@@ -5,13 +5,7 @@ const RoomManager = require('../src/core/RoomManager');
 const Snake = require('../src/core/Snake');
 
 const FoodFactory = require('../src/factories/FoodFactory');
-const SpeedPowerUpFactory = require('../src/factories/SpeedPowerUpFactory');
-const GrowPowerUpFactory = require('../src/factories/GrowPowerUpFactory');
-const ObstacleFactory = require('../src/factories/ObstacleFactory');
 const Food = require('../src/core/entities/Food');
-const SpeedPowerUp = require('../src/core/entities/SpeedPowerUp');
-const GrowPowerUp = require('../src/core/entities/GrowPowerUp');
-const Obstacle = require('../src/core/entities/Obstacle');
 
 const ClassicCollisionStrategy = require('../src/strategies/ClassicCollisionStrategy');
 const WrapAroundCollisionStrategy = require('../src/strategies/WrapAroundCollisionStrategy');
@@ -32,20 +26,13 @@ test('Singleton: RoomManager.getInstance() siempre devuelve la misma instancia',
   assert.strictEqual(a, c);
 });
 
-test('Factory Method: cada factory concreta crea el producto correcto', () => {
+test('Factory Method: la factory concreta crea el producto correcto', () => {
   const food = new FoodFactory().createEntity({ x: 2, y: 3 });
-  const speed = new SpeedPowerUpFactory().createEntity({ x: 1, y: 1 });
-  const grow = new GrowPowerUpFactory().createEntity({ x: 4, y: 4 });
-
-  const obstacle = new ObstacleFactory().createEntity({ x: 7, y: 7 });
 
   assert.ok(food instanceof Food);
-  assert.ok(speed instanceof SpeedPowerUp);
-  assert.ok(grow instanceof GrowPowerUp);
-  assert.ok(obstacle instanceof Obstacle);
-  assert.strictEqual(speed.kind, 'speed');
-  assert.strictEqual(grow.kind, 'grow');
-  assert.strictEqual(obstacle.kind, 'obstacle');
+  assert.strictEqual(food.kind, 'food');
+  assert.strictEqual(food.x, 2);
+  assert.strictEqual(food.y, 3);
 });
 
 test('Strategy: colision clasica mata en el borde, wrap-around teletransporta', () => {

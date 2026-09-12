@@ -145,18 +145,8 @@ function render(state) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = '#78716c';
-  (state.obstacles || []).forEach((o) => {
-    ctx.fillRect(o.x * CELL, o.y * CELL, CELL - 1, CELL - 1);
-  });
-
   ctx.fillStyle = '#ef4444';
   ctx.fillRect(state.food.x * CELL, state.food.y * CELL, CELL, CELL);
-
-  if (state.powerup) {
-    ctx.fillStyle = state.powerup.kind === 'speed' ? '#38bdf8' : '#a3e635';
-    ctx.fillRect(state.powerup.x * CELL, state.powerup.y * CELL, CELL, CELL);
-  }
 
   state.players.forEach((p, index) => {
     ctx.fillStyle = p.alive ? COLORS[index % COLORS.length] : '#555';

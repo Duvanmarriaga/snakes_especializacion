@@ -2,7 +2,7 @@
 
 ## Problema que resuelve
 
-En `snake-antes/server.js:11-12`, el registro de salas es una variable global (`let rooms = {}`) que cualquier parte del archivo lee y muta directamente. No hay garantía de que exista un único registro consistente, y probar esa lógica de forma aislada es difícil porque el estado vive fuera de cualquier clase.
+En `snake-antes/server.js:8-9`, el registro de salas es una variable global (`let rooms = {}`) que cualquier parte del archivo lee y muta directamente. No hay garantía de que exista un único registro consistente, y probar esa lógica de forma aislada es difícil porque el estado vive fuera de cualquier clase.
 
 ## Estructura aplicada
 

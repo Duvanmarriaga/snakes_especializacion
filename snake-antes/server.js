@@ -43,13 +43,10 @@ wss.on('connection', (ws) => {
           code: code,
           players: [],
           food: { x: 5, y: 5 },
-          powerup: null,
-          obstacles: [],
           state: 'waiting',
           countdown: 3,
           interval: null,
         };
-        generateObstacles(rooms[code]);
       }
       let room = rooms[code];
       if (room.players.length >= 4) {
@@ -117,28 +114,6 @@ wss.on('connection', (ws) => {
       return;
     }
 
-    if (msg.type === 'spectate') {
-      let code = msg.room || 'default';
-      if (!rooms[code]) {
-        ws.send(JSON.stringify({ type: 'error', message: 'sala no existe' }));
-        return;
-      }
-      ws.room = code;
-      let room = rooms[code];
-      let state = {
-        type: 'state',
-        state: room.state,
-        food: room.food,
-        powerup: room.powerup,
-        obstacles: room.obstacles,
-        players: room.players.map(function (p) {
-          return { id: p.id, name: p.name, body: p.body, alive: p.alive, score: p.score };
-        }),
-      };
-      ws.send(JSON.stringify(state));
-      return;
-    }
-
     if (msg.type === 'move') {
       let code = ws.room;
       let room = rooms[code];
@@ -161,8 +136,6 @@ wss.on('connection', (ws) => {
       if (!room) return;
       room.state = 'waiting';
       room.food = { x: 5, y: 5 };
-      room.powerup = null;
-      generateObstacles(room);
       for (let i = 0; i < room.players.length; i++) {
         let p = room.players[i];
         let startX = 3 + i * 5;
@@ -212,28 +185,6 @@ wss.on('connection', (ws) => {
     }
   });
 });
-
-function generateObstacles(room) {
-  room.obstacles = [];
-  for (let n = 0; n < 10; n++) {
-    let ox, oy, ok;
-    do {
-      ok = true;
-      ox = Math.floor(Math.random() * 30);
-      oy = Math.floor(Math.random() * 30);
-      for (let i = 0; i < room.players.length; i++) {
-        for (let z = 0; z < room.players[i].body.length; z++) {
-          if (room.players[i].body[z].x === ox && room.players[i].body[z].y === oy) ok = false;
-        }
-      }
-      for (let i = 0; i < room.obstacles.length; i++) {
-        if (room.obstacles[i].x === ox && room.obstacles[i].y === oy) ok = false;
-      }
-      if (room.food && room.food.x === ox && room.food.y === oy) ok = false;
-    } while (!ok);
-    room.obstacles.push({ x: ox, y: oy });
-  }
-}
 
 function startGameLoop(code) {
   let room = rooms[code];
@@ -286,18 +237,6 @@ function startGameLoop(code) {
         continue;
       }
 
-      let hitObstacle = false;
-      for (let j = 0; j < room.obstacles.length; j++) {
-        if (room.obstacles[j].x === newHead.x && room.obstacles[j].y === newHead.y) {
-          hitObstacle = true;
-          break;
-        }
-      }
-      if (hitObstacle) {
-        p.alive = false;
-        continue;
-      }
-
       p.body.unshift(newHead);
 
       if (newHead.x === room.food.x && newHead.y === room.food.y) {
@@ -310,41 +249,11 @@ function startGameLoop(code) {
           for (let z = 0; z < p.body.length; z++) {
             if (p.body[z].x === fx && p.body[z].y === fy) ok = false;
           }
-          for (let z = 0; z < room.obstacles.length; z++) {
-            if (room.obstacles[z].x === fx && room.obstacles[z].y === fy) ok = false;
-          }
         } while (!ok);
         room.food = { x: fx, y: fy };
-      } else if (room.powerup && newHead.x === room.powerup.x && newHead.y === room.powerup.y) {
-        if (room.powerup.kind === 'speed') {
-          p.score += 5;
-        } else if (room.powerup.kind === 'grow') {
-          p.body.push({ x: p.body[p.body.length - 1].x, y: p.body[p.body.length - 1].y });
-          p.body.push({ x: p.body[p.body.length - 1].x, y: p.body[p.body.length - 1].y });
-          p.score += 5;
-        }
-        room.powerup = null;
       } else {
         p.body.pop();
       }
-    }
-
-    if (!room.powerup && Math.random() < 0.02) {
-      let px, py, ok2;
-      do {
-        ok2 = true;
-        px = Math.floor(Math.random() * 30);
-        py = Math.floor(Math.random() * 30);
-        for (let i = 0; i < room.players.length; i++) {
-          for (let z = 0; z < room.players[i].body.length; z++) {
-            if (room.players[i].body[z].x === px && room.players[i].body[z].y === py) ok2 = false;
-          }
-        }
-        for (let i = 0; i < room.obstacles.length; i++) {
-          if (room.obstacles[i].x === px && room.obstacles[i].y === py) ok2 = false;
-        }
-      } while (!ok2);
-      room.powerup = { x: px, y: py, kind: Math.random() < 0.5 ? 'speed' : 'grow' };
     }
 
     let aliveCount = 0;
@@ -360,8 +269,6 @@ function startGameLoop(code) {
       type: 'state',
       state: room.state,
       food: room.food,
-      powerup: room.powerup,
-      obstacles: room.obstacles,
       players: room.players.map(function (p) {
         return { id: p.id, name: p.name, body: p.body, alive: p.alive, score: p.score };
       }),
