@@ -8,46 +8,92 @@ const statusEl = document.getElementById('status');
 const scoreboardEl = document.getElementById('scoreboard');
 const restartBtn = document.getElementById('restart-btn');
 const startBtn = document.getElementById('start-btn');
+const roomsListEl = document.getElementById('rooms-list');
+const roomInput = document.getElementById('room-input');
 
-let ws = null;
 let myId = null;
+let joined = false;
 
-document.getElementById('join-btn').addEventListener('click', () => {
+const STATE_LABELS = {
+  waiting: 'esperando jugadores',
+  countdown: 'iniciando',
+  playing: 'en juego',
+  gameover: 'partida terminada',
+};
+
+const ws = new WebSocket(`ws://${location.host}`);
+
+ws.addEventListener('message', (event) => {
+  const msg = JSON.parse(event.data);
+  if (msg.type === 'rooms') {
+    renderRooms(msg.rooms);
+  } else if (msg.type === 'error') {
+    statusEl.textContent = msg.message;
+  } else if (msg.type === 'countdown') {
+    startBtn.style.display = 'none';
+    statusEl.textContent = 'Empieza en ' + msg.value + '...';
+  } else if (msg.type === 'state') {
+    render(msg);
+  }
+});
+
+function renderRooms(rooms) {
+  if (!rooms.length) {
+    roomsListEl.innerHTML = '<li class="room-empty">No hay salas activas. Crea una escribiendo un codigo.</li>';
+    return;
+  }
+  roomsListEl.innerHTML = '';
+  rooms.forEach((room) => {
+    const li = document.createElement('li');
+    const label = document.createElement('span');
+    label.textContent = `${room.code} — ${room.players}/${room.maxPlayers} jugadores (${STATE_LABELS[room.state] || room.state})`;
+    const joinRoomBtn = document.createElement('button');
+    joinRoomBtn.textContent = 'Unirse';
+    joinRoomBtn.disabled = room.players >= room.maxPlayers || joined;
+    joinRoomBtn.addEventListener('click', () => {
+      roomInput.value = room.code;
+      doJoin();
+    });
+    li.appendChild(label);
+    li.appendChild(joinRoomBtn);
+    roomsListEl.appendChild(li);
+  });
+}
+
+function doJoin() {
+  if (joined) return;
   const name = document.getElementById('name-input').value || 'jugador';
-  const room = document.getElementById('room-input').value || 'sala1';
+  const room = roomInput.value || 'sala1';
 
-  ws = new WebSocket(`ws://${location.host}`);
-  ws.addEventListener('open', () => {
+  const send = () => {
+    joined = true;
     ws.send(JSON.stringify({ type: 'join', name, room }));
     statusEl.textContent = 'Esperando otros jugadores... (o pulsa Empezar para jugar solo)';
     startBtn.style.display = 'inline-block';
-  });
-  ws.addEventListener('message', (event) => {
-    const msg = JSON.parse(event.data);
-    if (msg.type === 'error') {
-      statusEl.textContent = msg.message;
-    } else if (msg.type === 'countdown') {
-      startBtn.style.display = 'none';
-      statusEl.textContent = 'Empieza en ' + msg.value + '...';
-    } else if (msg.type === 'state') {
-      render(msg);
-    }
-  });
-});
+  };
+
+  if (ws.readyState === WebSocket.OPEN) {
+    send();
+  } else {
+    ws.addEventListener('open', send, { once: true });
+  }
+}
+
+document.getElementById('join-btn').addEventListener('click', doJoin);
 
 startBtn.addEventListener('click', () => {
-  if (ws) ws.send(JSON.stringify({ type: 'start' }));
+  ws.send(JSON.stringify({ type: 'start' }));
   startBtn.style.display = 'none';
 });
 
 restartBtn.addEventListener('click', () => {
-  if (ws) ws.send(JSON.stringify({ type: 'restart' }));
+  ws.send(JSON.stringify({ type: 'restart' }));
   restartBtn.style.display = 'none';
   startBtn.style.display = 'none';
 });
 
 function sendMove(dir) {
-  if (ws) ws.send(JSON.stringify({ type: 'move', dir }));
+  if (joined) ws.send(JSON.stringify({ type: 'move', dir }));
 }
 
 window.addEventListener('keydown', (e) => {

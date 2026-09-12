@@ -4,6 +4,9 @@ const Player = require('../core/Player');
 let nextPlayerId = 1;
 
 function handleConnection(ws) {
+  const roomManager = RoomManager.getInstance();
+  roomManager.registerClient(ws);
+
   ws.on('message', (raw) => {
     let message;
     try {
@@ -15,8 +18,8 @@ function handleConnection(ws) {
   });
 
   ws.on('close', () => {
+    roomManager.unregisterClient(ws);
     if (!ws.roomCode) return;
-    const roomManager = RoomManager.getInstance();
     const room = roomManager.getRoom(ws.roomCode);
     if (!room) return;
     room.removePlayer(ws.playerId);

@@ -51,6 +51,51 @@ button:active {
   margin-bottom: 8px;
 }
 
+#rooms-panel {
+  max-width: 420px;
+  margin: 0 auto 16px;
+}
+
+#rooms-panel h2 {
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: #aaa;
+  font-weight: normal;
+}
+
+#rooms-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#rooms-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+#rooms-list .room-empty {
+  color: #888;
+  justify-content: center;
+  background: transparent;
+  border-style: dashed;
+}
+
+#rooms-list button {
+  padding: 4px 10px;
+  font-size: 14px;
+}
+
 #board-wrap {
   display: flex;
   justify-content: center;

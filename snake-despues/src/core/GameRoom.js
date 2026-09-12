@@ -4,7 +4,16 @@ const FoodFactory = require('../factories/FoodFactory');
 const SpeedPowerUpFactory = require('../factories/SpeedPowerUpFactory');
 const GrowPowerUpFactory = require('../factories/GrowPowerUpFactory');
 const ObstacleFactory = require('../factories/ObstacleFactory');
-const { BOARD_SIZE, TICK_MS, MAX_PLAYERS, POWERUP_SPAWN_CHANCE, OBSTACLE_COUNT } = require('../config');
+const {
+  BOARD_SIZE,
+  INITIAL_TICK_MS,
+  MIN_TICK_MS,
+  SPEED_UP_INTERVAL_MS,
+  SPEED_UP_STEP_MS,
+  MAX_PLAYERS,
+  POWERUP_SPAWN_CHANCE,
+  OBSTACLE_COUNT,
+} = require('../config');
 
 class GameRoom {
   constructor(code, collisionStrategy = new ClassicCollisionStrategy()) {
@@ -19,6 +28,8 @@ class GameRoom {
     this.food = this.foodFactory.createEntity(this.randomFreePosition());
     this.powerUp = null;
     this.interval = null;
+    this.speedUpInterval = null;
+    this.tickMs = INITIAL_TICK_MS;
     this.setState(new WaitingState(this));
   }
 
@@ -32,6 +43,7 @@ class GameRoom {
 
   setState(state) {
     this.state = state;
+    require('./RoomManager').getInstance().broadcastRooms();
   }
 
   isFull() {
@@ -45,6 +57,7 @@ class GameRoom {
   addPlayer(player) {
     this.players.push(player);
     this.state.onPlayerJoined();
+    require('./RoomManager').getInstance().broadcastRooms();
   }
 
   removePlayer(playerId) {
@@ -52,6 +65,7 @@ class GameRoom {
     if (this.players.length === 0) {
       this.stopGameLoop();
     }
+    require('./RoomManager').getInstance().broadcastRooms();
   }
 
   handleDirection(playerId, dir) {
@@ -96,13 +110,30 @@ class GameRoom {
   }
 
   startGameLoop() {
-    this.interval = setInterval(() => this.state.tick(), TICK_MS);
+    this.tickMs = INITIAL_TICK_MS;
+    this.scheduleTick();
+    this.speedUpInterval = setInterval(() => this.increaseSpeed(), SPEED_UP_INTERVAL_MS);
+  }
+
+  scheduleTick() {
+    if (this.interval) clearInterval(this.interval);
+    this.interval = setInterval(() => this.state.tick(), this.tickMs);
+  }
+
+  increaseSpeed() {
+    if (this.tickMs <= MIN_TICK_MS) return;
+    this.tickMs = Math.max(MIN_TICK_MS, this.tickMs - SPEED_UP_STEP_MS);
+    this.scheduleTick();
   }
 
   stopGameLoop() {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
+    }
+    if (this.speedUpInterval) {
+      clearInterval(this.speedUpInterval);
+      this.speedUpInterval = null;
     }
   }
 
