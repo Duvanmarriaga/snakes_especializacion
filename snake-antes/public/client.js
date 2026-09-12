@@ -8,7 +8,7 @@ const statusEl = document.getElementById('status');
 const scoreboardEl = document.getElementById('scoreboard');
 const restartBtn = document.getElementById('restart-btn');
 
-const AUTOMATA = true;
+const AUTOMATA = false;
 let last_dir = 'up'
 
 let ws = null;
